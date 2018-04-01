@@ -23,6 +23,9 @@ How to `curl`:
 
 ```bash
 curl http://127.0.0.1:8080/api/v1/家樂福/醬油
+```
+<img  src="https://raw.githubusercontent.com/EddieYY/go-crawl-store/master/img/大潤發_醬油CMD.png">
+```bash
 curl http://127.0.0.1:8080/api/v1/大潤發/醬油
 curl http://127.0.0.1:8080/api/v1/ALL/醬油
 ```
