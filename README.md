@@ -32,7 +32,7 @@ curl http://127.0.0.1:8080/api/v1/ALL/可口可樂
 ```bash
 curl http://127.0.0.1:8080/api/v1/家樂福/可口可樂
 ```
-<img  src="https://raw.githubusercontent.com/EddieYY/go-crawl-store/master/img/家樂福_可口可樂.png">
+<img  src="https://raw.githubusercontent.com/EddieYY/go-crawl-store/master/img/%E5%AE%B6%E6%A8%82%E8%A4%94_%E5%8F%AF%E5%8F%A3%E5%8F%AF%E6%A8%82.png">
 
 
 - **Example** - Qurey the real time price for 可口可樂 with 大潤發
