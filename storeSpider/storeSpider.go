@@ -55,10 +55,10 @@ func CarrefourSpider(Search string) []UnitPrice {
 					ve, _ := v.Export()
 					DT := ve.([]map[string]interface{})
 					for i := range DT {
-						fmt.Printf("家樂福 物品:%s, 數量:%s, 價格:NT$ %s, 折扣價:NT%s  \n", DT[i]["Name"],
+						fmt.Printf("家樂福 物品:%s, 數量:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"],
 							DT[i]["ItemQtyPerPackFormat"], DT[i]["Price"], DT[i]["SpecialPrice"])
 						Priceout = append(Priceout, UnitPrice{DT[i]["Name"].(string) + " " + DT[i]["ItemQtyPerPackFormat"].(string),
-							"NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)})
+							"NTD $" + DT[i]["Price"].(string), "NTD $" + DT[i]["SpecialPrice"].(string)})
 					}
 
 				}
@@ -101,7 +101,7 @@ func RtmartSpider(Search string) []UnitPrice {
 				if goData != nil {
 					DT := goData.([]map[string]interface{})
 					for i := range DT {
-						fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT%s  \n", DT[i]["name"], DT[i]["price"], "")
+						fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
 						Priceout = append(Priceout, UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""})
 					}
 				}
