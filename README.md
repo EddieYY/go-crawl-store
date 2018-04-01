@@ -16,6 +16,8 @@ go-crawl-store a restful API to price crawler for online stores (大潤發, 家�
  $ go run main.go
 
 ```
+<img align="right" width="159px" src="https://raw.githubusercontent.com/EddieYY/go-crawl-store/master/img/go-crawl-stire_server_run.png">
+
 
 How to `curl`:
 
