@@ -22,7 +22,7 @@ go-crawl-store a restful API server to crawler price for online stores (大潤�
 
 ## How to Query:
 
-- **Example** - Compare the Price for 可口可樂 with 大潤發 & 家樂福
+- **Example** - Compare the price for 可口可樂 with 大潤發 & 家樂福
 ```bash
 curl http://127.0.0.1:8080/api/v1/ALL/可口可樂
 ```
