@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 type UnitPrice struct {
@@ -36,36 +37,58 @@ func CarrefourSpider(Search string) []UnitPrice {
 		log.Fatal(err)
 	}
 	sel := doc.Find("script")
-	//out := StorePrice{"大潤發"}
-	var Priceout []UnitPrice
+
 	fmt.Printf("Start Search %s in 家樂福 \n", Search)
+
+	mainnode := make(chan string)
+
 	for i := range sel.Nodes {
-		single := sel.Eq(i)
-		script := single.Text()
-		if strings.Index(script, "searchProductListModel") > -1 {
-			vm := otto.New()
-			//vm.Run(`var dataLayer = []`)
-			vm.Run(script)
-			if value, err := vm.Get("searchProductListModel"); err == nil {
-				goData, _ := value.Export()
-				//mapData := goData.([]map[string]interface{})
-				if goData != nil && strings.Index(goData.(string), "Price") > -1 {
-					vm.Run(`var JSS = JSON.parse(searchProductListModel).ProductListModel`)
-					v, _ := vm.Get("JSS")
-					ve, _ := v.Export()
-					DT := ve.([]map[string]interface{})
-					for i := range DT {
-						fmt.Printf("家樂福 物品:%s, 數量:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"],
-							DT[i]["ItemQtyPerPackFormat"], DT[i]["Price"], DT[i]["SpecialPrice"])
-						Priceout = append(Priceout, UnitPrice{DT[i]["Name"].(string) + " " + DT[i]["ItemQtyPerPackFormat"].(string),
-							"NTD $" + DT[i]["Price"].(string), "NTD $" + DT[i]["SpecialPrice"].(string)})
-					}
-
-				}
-
+		//fmt.Print(i)
+		go func(i int) {
+			single := sel.Eq(i)
+			script := single.Text()
+			if strings.Index(script, "searchProductListModel") > -1 {
+				mainnode <- script
+				close(mainnode)
 			}
+		}(i)
+	}
+	//fmt.Println("%s", mainnode)
+	v := <-mainnode
+	//fmt.Println(v)
+	vm := otto.New()
+	vm.Run(v)
+	// taker js data
+	var DT []map[string]interface{}
+	if value, err := vm.Get("searchProductListModel"); err == nil {
+		goData, _ := value.Export()
+		if goData != nil && strings.Index(goData.(string), "Price") > -1 {
+			vm.Run(`var JSS = JSON.parse(searchProductListModel).ProductListModel`)
+			v, _ := vm.Get("JSS")
+			ve, _ := v.Export()
+			DT = ve.([]map[string]interface{})
 		}
 	}
+
+	size := make(chan UnitPrice, len(DT))
+	var wg sync.WaitGroup
+	for i := range DT {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
+			size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
+		}(i)
+	}
+	go func() {
+		wg.Wait()
+		close(size)
+	}()
+	var Priceout []UnitPrice
+	for t := range size {
+		Priceout = append(Priceout, t)
+	}
+
 	return Priceout
 }
 
@@ -86,37 +109,118 @@ func RtmartSpider(Search string) []UnitPrice {
 	}
 	sel := doc.Find("script")
 	//out := StorePrice{"大潤發"}
-	var Priceout []UnitPrice
+	//var Priceout []UnitPrice
 	fmt.Printf("Start Search %s in 大潤發 \n", Search)
+
+	mainnode := make(chan string)
+
 	for i := range sel.Nodes {
-		single := sel.Eq(i)
-		script := single.Text()
-		if strings.Index(script, "dataLayer") > -1 {
-			vm := otto.New()
-			vm.Run(`var dataLayer = []`)
-			vm.Run(script)
-			vm.Run(`var js = dataLayer[0].ecommerce.impressions`)
-			if value, err := vm.Get("js"); err == nil {
-				goData, _ := value.Export()
-				if goData != nil {
-					DT := goData.([]map[string]interface{})
-					for i := range DT {
-						fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
-						Priceout = append(Priceout, UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""})
-					}
-				}
+		//fmt.Print(i)
+		go func(i int) {
+			single := sel.Eq(i)
+			script := single.Text()
+			if strings.Index(script, "dataLayer.push") > -1 {
+				mainnode <- script
+				close(mainnode)
 			}
-		}
+		}(i)
 	}
+	v := <-mainnode
+	//fmt.Println(v)
+	vm := otto.New()
+	vm.Run(`var dataLayer = []`)
+	vm.Run(v)
+	vm.Run(`var js = dataLayer[0].ecommerce.impressions`)
+	var DT []map[string]interface{}
+	if value, err := vm.Get("js"); err == nil {
+		goData, _ := value.Export()
+		DT = goData.([]map[string]interface{})
+	}
+
+	size := make(chan UnitPrice, len(DT))
+	var wg sync.WaitGroup
+	for i := range DT {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
+			size <- UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""}
+		}(i)
+	}
+
+	go func() {
+		wg.Wait()
+		close(size)
+	}()
+
+	var Priceout []UnitPrice
+	for t := range size {
+		Priceout = append(Priceout, t)
+	}
+
+	/*for i := range DT {
+		fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
+		Priceout = append(Priceout, UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""})
+	}*/
+
 	return Priceout
 }
 
-func QureyStore(Search string) map[string][]UnitPrice {
-	out := make(map[string][]UnitPrice, 2)
-	out["大潤發"] = RtmartSpider(Search)
-	out["家樂福"] = CarrefourSpider(Search)
-	return out
-}
+/*func QureyStore(Search string, out map[string]chan []UnitPrice) {
+	//out := make(map[string][]UnitPrice)
+	//out := make(map[string]chan []UnitPrice)
+	//	go func(out map[string][]UnitPrice) {
+	//cc := make(chan int)
+	//cc <- 1
+	size := make(chan UnitPrice)
+	go func() { size <- RtmartSpider(Search) }()
+	go func() { size <- CarrefourSpider(Search) }()
+
+	out[] <- size
+	for t := range size {
+		out[] = append(Priceout, t)
+	}
+	//	}(out)
+	//<-cc
+	//return out
+}*/
+
+/*func QureyStore(Search string, out map[string]chan []UnitPrice) {
+	//	go func(out map[string][]UnitPrice) {
+
+	//out := make(map[string]chan []UnitPrice)
+	//c := make(map[string]chan []UnitPrice)
+	var wg sync.WaitGroup
+	//cc := make(chan int)
+	//cc <- 1
+	for _, r := range []string{"大潤發", "家樂福"} {
+		wg.Add(1)
+		go func(r string) {
+			defer wg.Done()
+			//fmt.Print(r)
+			switch r {
+			case "大潤發":
+				out["大潤發"] <- RtmartSpider(Search)
+			case "家樂福":
+				out["家樂福"] <- CarrefourSpider(Search)
+			}
+
+		}(r)
+	}
+
+	go func() {
+		wg.Wait()
+		//close(c["大潤發"])
+		//close(c["家樂福"])
+	}()
+
+	//fmt.Print(c["大潤發"])
+
+	//fmt.Print("123========", c)
+	//<-cc
+	//return out
+	//	}(out)
+}*/
 
 /*
 func main() {
