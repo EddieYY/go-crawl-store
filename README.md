@@ -2,7 +2,6 @@
 go-crawl-store a restful API server to crawler price for online stores (大潤發, 家樂福)
 
 ## Start using it
-0. Please note that because of the net/html dependency, goquery requires Go1.1+
 
 1. Download and install it:
 
