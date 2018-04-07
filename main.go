@@ -8,6 +8,7 @@ import (
 	//"github.com/gin-contrib/cache"
 	//"github.com/gin-contrib/cache/persistence"
 	"net/http"
+	"runtime"
 	//"time"
 )
 
@@ -31,6 +32,10 @@ import (
 
 }
 */
+
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+}
 
 func ComparePrice(c *gin.Context) {
 	Search := c.Param("id")
