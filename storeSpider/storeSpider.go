@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
+	//"sync"
 )
 
 type UnitPrice struct {
@@ -70,23 +70,38 @@ func CarrefourSpider(Search string) []UnitPrice {
 		}
 	}
 
-	size := make(chan UnitPrice, len(DT))
-	var wg sync.WaitGroup
+	/*	size := make(chan UnitPrice, len(DT))
+		var wg sync.WaitGroup
+		for i := range DT {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
+				size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
+			}(i)
+		}
+		go func() {
+			wg.Wait()
+			close(size)
+		}()
+		var Priceout []UnitPrice
+		for t := range size {
+			Priceout = append(Priceout, t)
+		}
+	*/
+	size := make(chan UnitPrice)
 	for i := range DT {
-		wg.Add(1)
+		//	wg.Add(1)
 		go func(i int) {
-			defer wg.Done()
+			//		defer wg.Done()
 			fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
 			size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
 		}(i)
 	}
-	go func() {
-		wg.Wait()
-		close(size)
-	}()
 	var Priceout []UnitPrice
-	for t := range size {
-		Priceout = append(Priceout, t)
+	for i := 0; i < len(DT); i++ {
+		result := <-size
+		Priceout = append(Priceout, result)
 	}
 
 	return Priceout
@@ -137,7 +152,7 @@ func RtmartSpider(Search string) []UnitPrice {
 		DT = goData.([]map[string]interface{})
 	}
 
-	size := make(chan UnitPrice, len(DT))
+	/*size := make(chan UnitPrice, len(DT))
 	var wg sync.WaitGroup
 	for i := range DT {
 		wg.Add(1)
@@ -157,11 +172,21 @@ func RtmartSpider(Search string) []UnitPrice {
 	for t := range size {
 		Priceout = append(Priceout, t)
 	}
-
-	/*for i := range DT {
-		fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
-		Priceout = append(Priceout, UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""})
-	}*/
+	*/
+	size := make(chan UnitPrice)
+	for i := range DT {
+		//	wg.Add(1)
+		go func(i int) {
+			//		defer wg.Done()
+			fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
+			size <- UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""}
+		}(i)
+	}
+	var Priceout []UnitPrice
+	for i := 0; i < len(DT); i++ {
+		result := <-size
+		Priceout = append(Priceout, result)
+	}
 
 	return Priceout
 }
