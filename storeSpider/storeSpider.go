@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	//"sync"
+	"sync"
 )
 
 type UnitPrice struct {
@@ -21,7 +21,7 @@ type StorePrice struct {
 	Body  []UnitPrice
 }
 
-func CarrefourSpider(Search string) []UnitPrice {
+func CarrefourSpider(Search string) StorePrice {
 	// Request the HTML page.
 	res, err := http.Get("https://online.carrefour.com.tw/search?key=" + Search)
 	if err != nil {
@@ -70,26 +70,26 @@ func CarrefourSpider(Search string) []UnitPrice {
 		}
 	}
 
-	/*	size := make(chan UnitPrice, len(DT))
-		var wg sync.WaitGroup
-		for i := range DT {
-			wg.Add(1)
-			go func(i int) {
-				defer wg.Done()
-				fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
-				size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
-			}(i)
-		}
-		go func() {
-			wg.Wait()
-			close(size)
-		}()
-		var Priceout []UnitPrice
-		for t := range size {
-			Priceout = append(Priceout, t)
-		}
-	*/
-	size := make(chan UnitPrice)
+	size := make(chan UnitPrice, len(DT))
+	var wg sync.WaitGroup
+	for i := range DT {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
+			size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
+		}(i)
+	}
+	go func() {
+		wg.Wait()
+		close(size)
+	}()
+	var Priceout []UnitPrice
+	for t := range size {
+		Priceout = append(Priceout, t)
+	}
+
+	/*size := make(chan UnitPrice)
 	for i := range DT {
 		//	wg.Add(1)
 		go func(i int) {
@@ -102,12 +102,12 @@ func CarrefourSpider(Search string) []UnitPrice {
 	for i := 0; i < len(DT); i++ {
 		result := <-size
 		Priceout = append(Priceout, result)
-	}
+	}*/
 
-	return Priceout
+	return StorePrice{"家樂福", Priceout}
 }
 
-func RtmartSpider(Search string) []UnitPrice {
+func RtmartSpider(Search string) StorePrice {
 	// Request the HTML page.
 	res, err := http.Get("http://www.rt-mart.com.tw/direct/index.php?action=product_search&prod_keyword=" + Search)
 	if err != nil {
@@ -152,7 +152,7 @@ func RtmartSpider(Search string) []UnitPrice {
 		DT = goData.([]map[string]interface{})
 	}
 
-	/*size := make(chan UnitPrice, len(DT))
+	size := make(chan UnitPrice, len(DT))
 	var wg sync.WaitGroup
 	for i := range DT {
 		wg.Add(1)
@@ -172,8 +172,8 @@ func RtmartSpider(Search string) []UnitPrice {
 	for t := range size {
 		Priceout = append(Priceout, t)
 	}
-	*/
-	size := make(chan UnitPrice)
+
+	/*size := make(chan UnitPrice)
 	for i := range DT {
 		//	wg.Add(1)
 		go func(i int) {
@@ -187,8 +187,9 @@ func RtmartSpider(Search string) []UnitPrice {
 		result := <-size
 		Priceout = append(Priceout, result)
 	}
+	*/
 
-	return Priceout
+	return StorePrice{"大潤發", Priceout}
 }
 
 /*func QureyStore(Search string, out map[string]chan []UnitPrice) {

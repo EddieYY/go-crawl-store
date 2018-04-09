@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"runtime"
 	//"time"
+	"sync"
 )
 
 /*func ComparePrice() http.Handler {
@@ -39,26 +40,35 @@ func init() {
 
 func ComparePrice(c *gin.Context) {
 	Search := c.Param("id")
-	out1 := make(chan []storeSpider.UnitPrice)
-	out2 := make(chan []storeSpider.UnitPrice)
-	go func() { out1 <- storeSpider.RtmartSpider(Search) }()
-	go func() { out2 <- storeSpider.CarrefourSpider(Search) }()
-	//storeSpider.QureyStore(Search, out)
+	var wg sync.WaitGroup
+	out := make([]storeSpider.StorePrice, 2)
 
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "大潤發": <-out1, "家樂福": <-out2})
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		out[0] = storeSpider.RtmartSpider(Search)
+	}()
+	go func() {
+		defer wg.Done()
+		out[1] = storeSpider.CarrefourSpider(Search)
+	}()
+	//storeSpider.QureyStore(Search, out)
+	wg.Wait()
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
 }
 
 func Carrefourcontroller(c *gin.Context) {
 	Search := c.Param("id")
 	out := storeSpider.CarrefourSpider(Search)
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "家樂福": out})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
 
 }
 
 func Rtmartcontroller(c *gin.Context) {
 	Search := c.Param("id")
 	out := storeSpider.RtmartSpider(Search)
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "大潤發": out})
+	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
 
 }
 
