@@ -89,21 +89,6 @@ func CarrefourSpider(Search string) StorePrice {
 		Priceout = append(Priceout, t)
 	}
 
-	/*size := make(chan UnitPrice)
-	for i := range DT {
-		//	wg.Add(1)
-		go func(i int) {
-			//		defer wg.Done()
-			fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
-			size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
-		}(i)
-	}
-	var Priceout []UnitPrice
-	for i := 0; i < len(DT); i++ {
-		result := <-size
-		Priceout = append(Priceout, result)
-	}*/
-
 	return StorePrice{"家樂福", Priceout}
 }
 
@@ -173,85 +158,5 @@ func RtmartSpider(Search string) StorePrice {
 		Priceout = append(Priceout, t)
 	}
 
-	/*size := make(chan UnitPrice)
-	for i := range DT {
-		//	wg.Add(1)
-		go func(i int) {
-			//		defer wg.Done()
-			fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
-			size <- UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""}
-		}(i)
-	}
-	var Priceout []UnitPrice
-	for i := 0; i < len(DT); i++ {
-		result := <-size
-		Priceout = append(Priceout, result)
-	}
-	*/
-
 	return StorePrice{"大潤發", Priceout}
 }
-
-/*func QureyStore(Search string, out map[string]chan []UnitPrice) {
-	//out := make(map[string][]UnitPrice)
-	//out := make(map[string]chan []UnitPrice)
-	//	go func(out map[string][]UnitPrice) {
-	//cc := make(chan int)
-	//cc <- 1
-	size := make(chan UnitPrice)
-	go func() { size <- RtmartSpider(Search) }()
-	go func() { size <- CarrefourSpider(Search) }()
-
-	out[] <- size
-	for t := range size {
-		out[] = append(Priceout, t)
-	}
-	//	}(out)
-	//<-cc
-	//return out
-}*/
-
-/*func QureyStore(Search string, out map[string]chan []UnitPrice) {
-	//	go func(out map[string][]UnitPrice) {
-
-	//out := make(map[string]chan []UnitPrice)
-	//c := make(map[string]chan []UnitPrice)
-	var wg sync.WaitGroup
-	//cc := make(chan int)
-	//cc <- 1
-	for _, r := range []string{"大潤發", "家樂福"} {
-		wg.Add(1)
-		go func(r string) {
-			defer wg.Done()
-			//fmt.Print(r)
-			switch r {
-			case "大潤發":
-				out["大潤發"] <- RtmartSpider(Search)
-			case "家樂福":
-				out["家樂福"] <- CarrefourSpider(Search)
-			}
-
-		}(r)
-	}
-
-	go func() {
-		wg.Wait()
-		//close(c["大潤發"])
-		//close(c["家樂福"])
-	}()
-
-	//fmt.Print(c["大潤發"])
-
-	//fmt.Print("123========", c)
-	//<-cc
-	//return out
-	//	}(out)
-}*/
-
-/*
-func main() {
-	Search := "可口可樂"
-	out := QureyStore(Search)
-	fmt.Print(out)
-}
-*/

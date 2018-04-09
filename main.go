@@ -3,36 +3,10 @@ package main
 import (
 	"github.com/EddieYY/go-crawl-store/storeSpider"
 	"github.com/gin-gonic/gin"
-	//"golang.org/x/sync/errgroup"
-	//"log"
-	//"github.com/gin-contrib/cache"
-	//"github.com/gin-contrib/cache/persistence"
 	"net/http"
 	"runtime"
-	//"time"
 	"sync"
 )
-
-/*func ComparePrice() http.Handler {
-	//Search := c.Param("id")
-	//out := storeSpider.QureyStore(Search)
-	//c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "大潤發": out["大潤發"], "家樂福": out["家樂福"]})
-
-	e := gin.New()
-	e.Use(gin.Recovery())
-	e.GET("/api/v1/ALL/:id", func(c *gin.Context) {
-		Search := c.Param("id")
-		out := storeSpider.QureyStore(Search)
-		c.JSON(
-			http.StatusOK,
-			gin.H{"status": http.StatusOK, "大潤發": out["大潤發"], "家樂福": out["家樂福"]},
-		)
-	})
-
-	return e
-
-}
-*/
 
 func init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -83,32 +57,5 @@ func main() {
 		v1.GET("/大潤發/:id", Rtmartcontroller)
 	}
 
-	/*router.GET("/api/ALL/:id", func(c *gin.Context) {
-		// create copy to be used inside the goroutine
-		//cCp := c.Copy()
-		go func() {
-			Search := c.Param("id")
-			out := storeSpider.QureyStore(Search)
-			c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "大潤發": out["大潤發"], "家樂福": out["家樂福"]})
-		}()
-	})*/
 	router.Run()
 }
-
-/*func main() {
-	server01 := &http.Server{
-		Addr:         ":8080",
-		Handler:      ComparePrice(),
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
-	g.Go(func() error {
-		return server01.ListenAndServe()
-	})
-
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
-	}
-
-}
-*/
