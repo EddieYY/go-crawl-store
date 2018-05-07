@@ -1,11 +1,15 @@
 package main
 
 import (
+	//"fmt"
 	"github.com/EddieYY/go-crawl-store/storeSpider"
+	"github.com/gin-contrib/cache"
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"runtime"
 	"sync"
+	"time"
 )
 
 func init() {
@@ -48,13 +52,13 @@ func Rtmartcontroller(c *gin.Context) {
 
 func main() {
 	router := gin.Default()
-	//store := persistence.NewInMemoryStore(60 * time.Second)
+	store := persistence.NewInMemoryStore(time.Minute * 5)
+
 	v1 := router.Group("/api/v1")
 	{
-		v1.GET("/ALL/:id", ComparePrice)
-		//cache.CachePage(store, time.Minute
-		v1.GET("/家樂福/:id", Carrefourcontroller)
-		v1.GET("/大潤發/:id", Rtmartcontroller)
+		v1.GET("/ALL/:id", cache.CachePage(store, time.Minute*5, ComparePrice))
+		v1.GET("/家樂福/:id", cache.CachePage(store, time.Minute*5, Carrefourcontroller))
+		v1.GET("/大潤發/:id", cache.CachePage(store, time.Minute*5, Rtmartcontroller))
 	}
 
 	router.Run()
