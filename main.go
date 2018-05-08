@@ -30,12 +30,17 @@ func ComparePrice(c *gin.Context) {
 		select {
 		case unit := <-outt:
 			out = append(out, unit)
-		case <-time.After(6 * time.Second):
+		case <-time.After(5 * time.Second):
 			fmt.Println("timeout")
 			continue
 		}
 	}
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
+	if out == nil {
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": "Sorry! No search result!"})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
+	}
+
 }
 
 func Carrefourcontroller(c *gin.Context) {
