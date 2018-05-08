@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	//"time"
 )
 
 type UnitPrice struct {
@@ -69,6 +70,23 @@ func CarrefourSpider(Search string) StorePrice {
 			DT = ve.([]map[string]interface{})
 		}
 	}
+
+	// size := make(chan UnitPrice)
+	// for i := range DT {
+
+	// 	go func(i int) {
+
+	// 		fmt.Printf("家樂福 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["Name"], DT[i]["Price"], DT[i]["SpecialPrice"])
+	// 		size <- UnitPrice{DT[i]["Name"].(string), "NTD $" + DT[i]["Price"].(string), DT[i]["SpecialPrice"].(string)}
+	// 	}(i)
+	// }
+	// var Priceout []UnitPrice
+	// for i := 0; i < len(DT); i++ {
+	// 	select {
+	// 	case result := <-size:
+	// 		Priceout = append(Priceout, result)
+	// 	}
+	// }
 
 	size := make(chan UnitPrice, len(DT))
 	var wg sync.WaitGroup
@@ -137,6 +155,23 @@ func RtmartSpider(Search string) StorePrice {
 		DT = goData.([]map[string]interface{})
 	}
 
+	// size := make(chan UnitPrice)
+	// for i := range DT {
+
+	// 	go func(i int) {
+
+	// 		fmt.Printf("大潤發 物品:%s, 價格:NT$ %s, 折扣價:NT$ %s  \n", DT[i]["name"], DT[i]["price"], "")
+	// 		size <- UnitPrice{DT[i]["name"].(string), "NTD $" + DT[i]["price"].(string), ""}
+	// 	}(i)
+	// }
+	// var Priceout []UnitPrice
+	// for i := 0; i < len(DT); i++ {
+	// 	select {
+	// 	case result := <-size:
+	// 		Priceout = append(Priceout, result)
+	// 	}
+	// }
+
 	size := make(chan UnitPrice, len(DT))
 	var wg sync.WaitGroup
 	for i := range DT {
@@ -157,6 +192,7 @@ func RtmartSpider(Search string) StorePrice {
 	for t := range size {
 		Priceout = append(Priceout, t)
 	}
+	//time.Sleep(10 * time.Second)
 
 	return StorePrice{"大潤發", Priceout}
 }

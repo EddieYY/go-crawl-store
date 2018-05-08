@@ -1,14 +1,14 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/EddieYY/go-crawl-store/storeSpider"
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"runtime"
-	"sync"
+	//"sync"
 	"time"
 )
 
@@ -18,21 +18,23 @@ func init() {
 
 func ComparePrice(c *gin.Context) {
 	Search := c.Param("id")
-	var wg sync.WaitGroup
-	out := make([]storeSpider.StorePrice, 2)
 
-	wg.Add(2)
+	outt := make(chan storeSpider.StorePrice)
 
-	go func() {
-		defer wg.Done()
-		out[0] = storeSpider.RtmartSpider(Search)
-	}()
-	go func() {
-		defer wg.Done()
-		out[1] = storeSpider.CarrefourSpider(Search)
-	}()
-	//storeSpider.QureyStore(Search, out)
-	wg.Wait()
+	go func() { outt <- storeSpider.RtmartSpider(Search) }()
+	go func() { outt <- storeSpider.CarrefourSpider(Search) }()
+
+	var out []storeSpider.StorePrice
+
+	for i := 0; i < 2; i++ {
+		select {
+		case unit := <-outt:
+			out = append(out, unit)
+		case <-time.After(6 * time.Second):
+			fmt.Println("timeout")
+			continue
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": out})
 }
 
